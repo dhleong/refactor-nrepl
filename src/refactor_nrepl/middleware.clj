@@ -87,7 +87,8 @@
    (require-and-resolve 'refactor-nrepl.ns.resolve-missing/resolve-missing)))
 
 (defn resolve-missing-reply [{:keys [transport] :as msg}]
-  (reply transport msg :candidates (@resolve-missing msg) :status :done))
+  (reply transport msg :status :done
+         :candidates (serialize-response msg (@resolve-missing msg))))
 
 (def ^:private find-symbol
   (delay
@@ -114,13 +115,16 @@
   (delay (require-and-resolve 'refactor-nrepl.artifacts/hotload-dependency)))
 
 (defn- artifact-list-reply [{:keys [transport] :as msg}]
-  (reply transport msg :artifacts (@artifact-list msg) :status :done))
+  (reply transport msg :status :done
+         :artifacts (serialize-response msg (@artifact-list msg))))
 
 (defn- artifact-versions-reply [{:keys [transport] :as msg}]
-  (reply transport msg :versions (@artifact-versions msg) :status :done))
+  (reply transport msg :status :done
+         :versions (serialize-response msg (@artifact-versions msg))))
 
 (defn- hotload-dependency-reply [{:keys [transport] :as msg}]
-  (reply transport msg :status :done :dependency (@hotload-dependency msg)))
+  (reply transport msg :status :done
+         :dependency (serialize-response msg (@hotload-dependency msg))))
 
 (def ^:private clean-ns
   (delay
@@ -131,17 +135,20 @@
    (require-and-resolve 'refactor-nrepl.ns.pprint/pprint-ns)))
 
 (defn- clean-ns-reply [{:keys [transport path] :as msg}]
-  (reply transport msg :ns (some-> msg (@clean-ns) (@pprint-ns)) :status :done))
+  (reply transport msg :status :done
+         :ns (serialize-response msg (some-> msg (@clean-ns) (@pprint-ns)))))
 
 (def ^:private find-used-locals
   (delay
    (require-and-resolve 'refactor-nrepl.find.find-locals/find-used-locals)))
 
 (defn- find-used-locals-reply [{:keys [transport] :as msg}]
-  (reply transport msg :used-locals (@find-used-locals msg)))
+  (reply transport msg :status :done
+         :used-locals (serialize-response msg (@find-used-locals msg))))
 
 (defn- version-reply [{:keys [transport] :as msg}]
-  (reply transport msg :status :done :version (core/version)))
+  (reply transport msg :status :done
+         :version (serialize-response msg (core/version))))
 
 (def ^:private warm-ast-cache
   (delay
@@ -174,20 +181,19 @@
    (require-and-resolve 'refactor-nrepl.rename-file-or-dir/rename-file-or-dir)))
 
 (defn- rename-file-or-dir-reply [{:keys [transport old-path new-path] :as msg}]
-  (reply transport msg :touched (@rename-file-or-dir old-path new-path)
-         :status :done))
+  (reply transport msg :status :done
+         :touched (serialize-response msg (@rename-file-or-dir old-path new-path))))
 
 (defn- namespace-aliases-reply [{:keys [transport] :as msg}]
-  (reply transport msg
-         :namespace-aliases (serialize-response msg (namespace-aliases))
-         :status :done))
+  (reply transport msg :status :done
+         :namespace-aliases (serialize-response msg (namespace-aliases))))
 
 (def ^:private find-used-publics
   (delay (require-and-resolve 'refactor-nrepl.find.find-used-publics/find-used-publics)))
 
 (defn- find-used-publics-reply [{:keys [transport] :as msg}]
-  (reply transport msg
-         :used-publics (serialize-response msg (@find-used-publics msg)) :status :done))
+  (reply transport msg :status :done
+         :used-publics (serialize-response msg (@find-used-publics msg))))
 
 (def refactor-nrepl-ops
   {"artifact-list" artifact-list-reply
